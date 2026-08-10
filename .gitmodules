@@ -1,0 +1,4 @@
+[submodule "upstream/Coyote"]
+	path = upstream/Coyote
+	url = https://gh-proxy.org/https://github.com/fpgasystems/Coyote.git
+	branch = master

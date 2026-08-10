@@ -8,6 +8,90 @@ Coyote 官方流程要求用 JTAG 线烧写第一个 bitstream（必须去机房
 
 ---
 
+## Quick Start（新机器一键落地）
+
+> 面向场景：你已经在一台机器上跑通了这套流程，现在要在**第二台**装了 Alveo U250
+> 的机器上复现，希望尽量少手动配置。
+
+### 前置条件
+
+- Ubuntu 20.04 / 22.04（本文所有阶段脚本都按apt 系写）
+- 该机器能通过 SSH 访问 GitHub（用来clone 主仓，不需要写权限也行）
+- 该机器能出网到 `gh-proxy.org`（用来拉上游Coyote 源码，见下）
+- 目前网络中如果 `github.com` 本身也能直连，`gh-proxy` 会成为无损耗的加速兜底
+
+### 一、克隆并初始化
+
+```bash
+# 1. 拿到本仓库（主仓走 SSH；如无 SSH key，可换成 https URL）
+git clone git@github.com:hrQAQ/nexus_prototype.git
+cd nexus_prototype
+
+# 2. 拉取所有上游代码（Coyote 以及 Coyote 自己的嵌套 submodule）
+#    该脚本会：
+#      - 在【本仓库范围内】配置 gh-proxy insteadOf 规则（不污染 ~/.gitconfig）
+#      - 递归初始化所有 submodule
+#      - 打印锁定的 upstream commit
+./scripts/bootstrap.sh
+
+# 3. 校验：以下命令应输出 Coyote 的目录树
+ls upstream/Coyote/hw upstream/Coyote/hw/services/network
+```
+
+如果这台机器直连 GitHub 更快，也可以跳过 gh-proxy：
+
+```bash
+NEXUS_USE_GH_PROXY=0 ./scripts/bootstrap.sh
+```
+
+> 结果：`upstream/Coyote/` 里就是**与第一台机器完全相同的** Coyote 源码
+> —— submodule 用 commit SHA 锁定，两台机器上的 `git rev-parse HEAD` 输出一致。
+
+### 二、按阶段文档走
+
+**注意路径**：下方阶段文档（`03-build-software.md`、`04-build-hardware.md` 等）
+写的都是 `~/fpga/Coyote/...`。这是首台机器上的历史约定。在新机器上有两种做法，
+选一即可：
+
+- **方案 A（推荐，零改动）**：建软链，让旧路径指向 submodule 里的 Coyote
+
+  ```bash
+  mkdir -p ~/fpga
+  ln -s "$(pwd)/upstream/Coyote" ~/fpga/Coyote
+  ls -l ~/fpga/Coyote     # 应该是软链
+  ```
+
+- **方案 B**：读文档时把每一处`~/fpga/Coyote` 心里替换成
+  `<repo>/upstream/Coyote`，其他不变
+
+然后按顺序执行阶段文档，见下方 [文档索引](#文档索引)。至少要完整过一遍
+`01-host-preparation.md`（依赖、hugepages）和 `02-vivado-install.md`
+（Vivado 2022.1）这两步 —— 它们是宿主机级的，两台机器都要各自做。
+
+### 三、上游版本管理
+
+-本仓库把 Coyote 锁定在 `upstream/Coyote` submodule 的一个具体 commit 上。
+  想升级到上游 master的最新提交时：
+
+  ```bash
+  cd upstream/Coyote
+  git fetch origin
+  git checkout origin/master
+  cd -
+  git add upstream/Coyote
+  git commit -m "bump: Coyote -> <new-sha>"
+  git push
+  ```
+
+  然后另一台机器只需要 `git pull && git submodule update --init --recursive`
+  就能同步到同一个 commit。
+
+- **不要**在`upstream/Coyote/` 里直接改 Coyote 源码然后 commit —— 我们对
+  Coyote 的所有增量都放在 `coyote-u250-deployment/scripts/` 里，保持 Coyote
+  子模块干净可`git pull`。
+
+---
+
 ## 文档索引
 
 按顺序阅读即可完成部署。文件名前缀就是阶段号。

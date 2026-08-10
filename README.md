@@ -20,10 +20,25 @@ Coyote on Alveo U250 的部署指南。
 ```
 nexus_prototype/
 ├── coyote-u250-deployment/   # Coyote on Alveo U250 部署指南（文档 + 脚本）
-├── docs/       # 预留：跨子项目的通用文档
+├── upstream/                 # 所有上游代码，作为 git submodule 锁定到具体 commit
+│   └── Coyote/               #   fpgasystems/Coyote  (master, gh-proxy URL)
+├── scripts/
+│   └── bootstrap.sh          # 新机器一键初始化（配 gh-proxy + init submodule）
+├── .gitmodules
 ├── .gitignore
 └── README.md      # 本文件
 ```
+
+## 在新机器上快速部署
+
+```bash
+git clone git@github.com:hrQAQ/nexus_prototype.git
+cd nexus_prototype
+./scripts/bootstrap.sh           # 拉上游代码，走 gh-proxy
+# 之后按 coyote-u250-deployment/README.md 的 Quick Start 继续
+```
+
+细节见 [`coyote-u250-deployment/README.md`](coyote-u250-deployment/README.md#quick-start新机器一键落地)。
 
 ## 约定
 
