@@ -1,0 +1,32 @@
+# --- 构建产物 ---
+# xbflash2 编译输出，见 coyote-u250-deployment/scripts/20_build_xbflash2.sh
+coyote-u250-deployment/scripts/build/
+
+# Vivado / XRT 产物（可能非常大，不要进 git）
+*.bit
+*.mcs
+*.dcp
+*.ltx
+*.jou
+*.str
+vivado_*.backup.*
+.Xil/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- 编辑器 / 系统 ---
+*.swp
+*.swo
+*~
+.DS_Store
+.idea/
+.vscode/
+
+# --- 临时文件 ---
+*.tmp
+*.bak
